@@ -1,0 +1,76 @@
+<%- include('../partials/header'); -%>
+
+<div class="row">
+	<div class="col-md-12">
+		<form id="search-form" class="mt-3">
+			<!-- Oklahoma Counties Select Menu -->
+			<div class="form-group">
+				<label for="county-select">Oklahoma Counties:</label>
+				<select class="form-control" id="county-select" name="db" required>
+					<option value="">Select a county</option>
+					<option value="all">All Oklahoma Courts*</option>
+					<option value="adair">Adair County District Court</option>
+					<option value="alfalfa">Alfalfa County District Court</option>
+					<option value="appellate">Appellate Courts</option>
+					<option value="atoka">Atoka County District Court</option>
+					<option value="beaver">Beaver County District Court</option>
+					<option value="beckham">Beckham County District Court</option>
+					<option value="blaine">Blaine County District Court</option>
+					<option value="bryan">Bryan County District Court</option>
+					<option value="caddo">Caddo County District Court</option>
+					<option value="canadian">Canadian County District Court</option>
+					<option value="carter">Carter County District Court</option>
+					<option value="cherokee">Cherokee County District Court</option>
+					<option value="choctaw">Choctaw County District Court</option>
+					<option value="cimarron">Cimarron County District Court</option>
+					<option value="cleveland">Cleveland County District Court</option>
+					<option value="coal">Coal County District Court</option>
+					<!-- Add more options here -->
+				</select>
+			</div>
+
+			<!-- Cases filed after date Picker -->
+			<div class="form-group">
+				<label for="filed-after-date">Cases filed after date:</label>
+				<input
+					type="date"
+					class="form-control"
+					id="filed-after-date"
+					name="FiledDateL"
+					required
+					placeholder="MM/DD/YYYY"
+				/>
+			</div>
+
+			<!-- Cases Closed before date Picker -->
+			<div class="form-group">
+				<label for="closed-before-date">Cases Closed before date:</label>
+				<input
+					type="date"
+					class="form-control"
+					id="closed-before-date"
+					name="ClosedDateH"
+					required
+					placeholder="MM/DD/YYYY"
+				/>
+			</div>
+
+			<!-- Hidden fields for 'dcct' and 'User-Agent' -->
+			<input type="hidden" name="dcct" value="32" />
+			<input
+				type="hidden"
+				name="UserAgent"
+				id="oscn-user-agent"
+				value="ffd8d377-7a8a-46a9-85fa-b7bb675d5f9c"
+			/>
+
+			<!-- Submit button -->
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
+	</div>
+</div>
+
+<%- include('../partials/footer'); -%>
+
+<!-- Include the custom script for handling form submission -->
+<script src="/js/searchFormHandler.js"></script>
