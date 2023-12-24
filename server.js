@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session');
 const path = require('path');
 const bodyParser = require('body-parser');
 const searchRoutes = require('./routes/search');
@@ -7,11 +8,21 @@ const searchRoutes = require('./routes/search');
 const app = express();
 const port = 5670;
 
-// Serve static files from the 'public' directory
-app.use(express.static('public'));
+// Configure session middleware
+app.use(session({
+    secret: 'edison',
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Parse URL-encoded bodies (as sent by HTML forms)
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Parse JSON bodies (as sent by API clients)
 app.use(bodyParser.json());
+
+// Serve static files from the 'public' directory
+//app.use(express.static('public'));
 
 // Set the view engine to ejs
 app.set('view engine', 'ejs');

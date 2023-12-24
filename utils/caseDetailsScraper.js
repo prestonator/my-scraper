@@ -10,8 +10,9 @@ async function scrapeCaseDetails(caseUrl, userAgent) {
 
     const caseDetails = await page.evaluate(() => {
         const nameElement = document.querySelector('div#oscn-content div.CountsContainer:first-of-type td.countpartyname > nobr');
-        const countsElements = document.querySelectorAll('div#oscn-content div.CountsContainer table.Counts > tbody tr td.CountDescription');
-        const verdictElement = document.querySelector('div#oscn-content div.CountsContainer table.Disposition tbody tr td.countdisposition font strong');
+
+        // Assuming each count and verdict are in the same row, we select the rows
+        const countRows = document.querySelectorAll('div#oscn-content div.CountsContainer');
 
         let firstName = '';
         let lastName = '';
@@ -19,13 +20,21 @@ async function scrapeCaseDetails(caseUrl, userAgent) {
             [lastName, firstName] = nameElement.textContent.trim().split(', '); // Assuming format "Last, First"
         }
 
-        const counts = Array.from(countsElements).map(el => el.textContent.trim());
-        const verdict = verdictElement ? verdictElement.textContent.trim() : '';
+        // Map each row to an object containing the count description and verdict
+        const countsWithVerdicts = Array.from(countRows).map(row => {
+            const countDescription = row.querySelector('table.Counts > tbody tr td.CountDescription').textContent.trim();
+            const verdictElement = row.querySelector('table.Disposition > tbody tr td.countdisposition font strong');
+            const verdict = verdictElement ? verdictElement.textContent.trim() : '';
+            return {
+                countDescription: countDescription,
+                verdict: verdict
+            };
+        });
 
         return {
             fullName: `${firstName} ${lastName}`.trim(),
-            counts: counts,
-            verdict: verdict
+            counts: countsWithVerdicts,
+            docketUrl: window.location.href,
         };
     });
 
