@@ -17,6 +17,6 @@ jobs:
       - name: Generate index
         run: scip-typescript index
       - name: Upload index
-        run: src code-intel upload -github-token='${{ secrets.GITHUB_TOKEN }}' -no-progress
+        run: src code-intel upload -repo='github.com/prestonator/my-scraper' -github-token='${{ secrets.GITHUB_TOKEN }}' -no-progress
         env:
           SRC_ENDPOINT: https://sourcegraph.com/
