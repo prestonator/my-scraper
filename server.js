@@ -7,15 +7,19 @@ const session = require("express-session");
 const path = require("path");
 const bodyParser = require("body-parser");
 const searchRoutes = require("./routes/search");
+require('dotenv').config()
 
 // Initialize express app
 const app = express();
 const port = 5670;
 
+// Load environment variables from .env file
+const session_secret = process.env.NODE_SESSION_SECRET;
+
 // Configure session middleware
 app.use(
 	session({
-		secret: "edison",
+        secret: session_secret,
 		resave: false,
 		saveUninitialized: true,
 	})
@@ -26,9 +30,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Parse JSON bodies (as sent by API clients)
 app.use(bodyParser.json());
-
-// Serve static files from the 'public' directory
-//app.use(express.static('public'));
 
 // Set the view engine to ejs
 app.set("view engine", "ejs");
