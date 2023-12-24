@@ -33,7 +33,6 @@ router.use(
 );
 
 router.post("/search", async (req, res) => {
-	console.log(req);
 	console.log("Received search request:", req.body);
 
 	const { db, FiledDateL, ClosedDateH } = req.body;
