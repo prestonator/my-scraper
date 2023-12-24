@@ -1,91 +1,79 @@
-/**
- * Scrapes court docket information from OSCN using Puppeteer and Cheerio.
- *
- * @param {string} searchUrl - The OSCN search URL to scrape.
- * @param {string} userAgent - The user agent string for the headless browser.
- * @returns {Promise<Object[]>} Promise resolving to array of case objects.
- */
-const puppeteer = require("puppeteer");
-const cheerio = require("cheerio");
-const scrapeCaseDetails = require("./caseDetailsScraper");
+// utils/scraper.js
 
-// This utility function handles scraping of OSCN using Puppeteer and Cheerio
+const puppeteer = require('puppeteer');
+const cheerio = require('cheerio');
+
+// Scrapes case details from a court case URL.
+async function scrapeCaseDetails(page, caseUrl) {
+    // Navigating to case URL to fetch case details
+    await page.goto(caseUrl, { waitUntil: 'networkidle0' });
+
+    const caseDetails = await page.evaluate(() => {
+        const nameElement = document.querySelector('div#oscn-content div.CountsContainer:first-of-type td.countpartyname > nobr');
+        const countRows = document.querySelectorAll('div#oscn-content div.CountsContainer');
+
+        let firstName = '';
+        let lastName = '';
+        if (nameElement) {
+            [lastName, firstName] = nameElement.textContent.trim().split(', '); // Assuming format "Last, First"
+        }
+
+        const countsWithVerdicts = Array.from(countRows).map((row) => {
+            const countDescriptionElement = row.querySelector('table.Counts > tbody tr td.CountDescription');
+            const countDescription = countDescriptionElement ? countDescriptionElement.textContent.trim() : 'Description not found';
+            const verdictElement = row.querySelector('table.Disposition > tbody tr td.countdisposition font strong');
+            const verdict = verdictElement ? verdictElement.textContent.trim() : '';
+            return {
+                countDescription: countDescription,
+                verdict: verdict,
+            };
+        });
+
+        return {
+            fullName: `${firstName} ${lastName}`.trim(),
+            counts: countsWithVerdicts,
+            docketUrl: window.location.href,
+        };
+    });
+
+    return caseDetails;
+}
+
+// Scrapes the dockets using Puppeteer and Cheerio
 async function scrapeDockets(searchUrl, userAgent) {
-	console.log("Launching browser");
-	const browser = await puppeteer.launch({
-		headless: "new",
-		args: ["--no-sandbox", "--disable-setuid-sandbox"],
-	});
-	console.log("Browser launched Successfully!");
-	let page;
-	let exception = null; // Initialize exception to null
-	try {
-		page = await browser.newPage();
-		await page.setUserAgent(userAgent);
-		console.log("User agent is set!");
+    const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.setUserAgent(userAgent);
 
-		// Navigate to the URL constructed from the search form
-		await page.goto(searchUrl, { waitUntil: "networkidle0" });
-		console.log("Page navigated, content is loading");
+    await page.goto(searchUrl, { waitUntil: 'networkidle0' });
+    const content = await page.content();
+    const $ = cheerio.load(content);
+    const caseNumberSelector = 'div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td:first-child > a';
+    const docketLinkSelector = 'div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td.result_shortstyle > a';
 
-		// Get the page content and load it into Cheerio for parsing
-		const content = await page.content();
-		console.log("Content loaded, starting extraction now");
+    const cases = {};
 
-		const $ = cheerio.load(content);
-		// Stores unique case entries
-		const cases = {};
+    $(caseNumberSelector).each((index, element) => {
+        const caseNumber = $(element).text().trim();
+        const docketPageLink = $(element).attr('href');
+        if (caseNumber && docketPageLink && !cases[caseNumber]) {
+            cases[caseNumber] = {
+                caseNumber: caseNumber,
+                docketPageLink: `http://www.oscn.net/dockets/${docketPageLink}`
+            };
+        }
+    });
 
-		// Define selectors for 'Case Number' and 'Docket Page Link'
-		// These selectors must match the actual page structure and may need adjustments
-		const caseNumberSelector =
-			"div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td:first-child > a";
-		const docketLinkSelector =
-			"div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td.result_shortstyle > a";
+    for (let caseNumber in cases) {
+        const caseDetails = await scrapeCaseDetails(page, cases[caseNumber].docketPageLink);
+        cases[caseNumber] = {
+            ...cases[caseNumber],
+            ...caseDetails
+        };
+    }
 
-		// Extract 'Case Number' and corresponding 'Docket Page Link'
-		$(caseNumberSelector).each((index, element) => {
-			const caseNumber = $(element).text().trim();
-			const docketPageLink = $(element).attr("href");
-			if (caseNumber && docketPageLink && !cases[caseNumber]) {
-				cases[caseNumber] = {
-					caseNumber: caseNumber,
-					docketPageLink: `http://www.oscn.net/dockets/${docketPageLink}`,
-				};
-				console.log(`Case extracted:  ${caseNumber}`);
-			}
-		});
-
-		// Create an array of promises for each case detail scraping operation
-		const caseDetailsPromises = Object.keys(cases).map(caseNumber =>
-			scrapeCaseDetails(cases[caseNumber].docketPageLink, userAgent)
-		);
-
-		// Use Promise.all to scrape all case details concurrently
-		const allCaseDetails = await Promise.all(caseDetailsPromises);
-
-		// Combine the case details with the existing case entries
-		Object.keys(cases).forEach((caseNumber, index) => {
-			cases[caseNumber] = {
-				...cases[caseNumber],
-				...allCaseDetails[index]
-			};
-		});
-
-		// Return array of case objects with no duplicates
-		console.log("Extraction complete, closing browser now");
-		return Object.values(cases);
-	} catch (error) {
-		// Adjust exception to error
-		console.error("Error during scraping:", error); // Log the correct error variable
-		exception = error; // Assign error to exception for final block reference
-		throw error;
-	} finally {
-		if (!exception && browser) {
-			await browser.close();
-			console.log("Browser closed now");
-		}
-	}
+    await browser.close();
+    return Object.values(cases);
 }
 
 module.exports = { scrapeDockets };
