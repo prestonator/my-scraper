@@ -9,48 +9,53 @@ const cheerio = require('cheerio');
  * @returns {Object} Object containing name, counts, docketUrl
  */
 async function scrapeCaseDetails(page, caseUrl) {
-    // Navigating to case URL to fetch case details
-    await page.goto(caseUrl, { waitUntil: "networkidle0" });
+    try {
+        // Navigating to case URL to fetch case details
+        await page.goto(caseUrl, { waitUntil: "networkidle0" });
 
-    const caseDetails = await page.evaluate(() => {
-        const nameElement = document.querySelector(
-            "div#oscn-content div.CountsContainer:first-of-type td.countpartyname > nobr"
-        );
-        const countRows = document.querySelectorAll(
-            "div#oscn-content div.CountsContainer"
-        );
-
-        let firstName = "";
-        let lastName = "";
-        if (nameElement) {
-            [lastName, firstName] = nameElement.textContent.trim().split(", "); // Assuming format "Last, First"
-        }
-
-        const countsWithVerdicts = Array.from(countRows).map((row) => {
-            const countDescriptionElement = row.querySelector(
-                "table.Counts > tbody tr td.CountDescription"
+        const caseDetails = await page.evaluate(() => {
+            const nameElement = document.querySelector(
+                "div#oscn-content div.CountsContainer:first-of-type td.countpartyname > nobr"
             );
-            const countDescription = countDescriptionElement
-                ? countDescriptionElement.textContent.trim()
-                : "Description not found";
-            const verdictElement = row.querySelector(
-                "table.Disposition > tbody tr td.countdisposition font strong"
+            const countRows = document.querySelectorAll(
+                "div#oscn-content div.CountsContainer"
             );
-            const verdict = verdictElement ? verdictElement.textContent.trim() : "";
+
+            let firstName = "";
+            let lastName = "";
+            if (nameElement) {
+                [lastName, firstName] = nameElement.textContent.trim().split(", "); // Assuming format "Last, First"
+            }
+
+            const countsWithVerdicts = Array.from(countRows).map((row) => {
+                const countDescriptionElement = row.querySelector(
+                    "table.Counts > tbody tr td.CountDescription"
+                );
+                const countDescription = countDescriptionElement
+                    ? countDescriptionElement.textContent.trim()
+                    : "Description not found";
+                const verdictElement = row.querySelector(
+                    "table.Disposition > tbody tr td.countdisposition font strong"
+                );
+                const verdict = verdictElement ? verdictElement.textContent.trim() : "";
+                return {
+                    countDescription: countDescription,
+                    verdict: verdict,
+                };
+            });
+
             return {
-                countDescription: countDescription,
-                verdict: verdict,
+                fullName: `${firstName} ${lastName}`.trim(),
+                counts: countsWithVerdicts,
+                docketUrl: window.location.href,
             };
         });
 
-        return {
-            fullName: `${firstName} ${lastName}`.trim(),
-            counts: countsWithVerdicts,
-            docketUrl: window.location.href,
-        };
-    });
-
-    return caseDetails;
+        return caseDetails;
+    } catch (error) {
+        console.error("Error scraping case details:", error.stack);
+        throw error;
+    }
 }
 
 /**
