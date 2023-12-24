@@ -7,7 +7,7 @@ on:
 jobs:
   create-and-upload-index:
     # prevent forks of this repo from uploading lsif indexes
-    if: github.repository == 'my-scraper'
+    if: github.repository == 'prestonator/my-scraper'
     runs-on: ubuntu-latest
     container: sourcegraph/scip-typescript:latest
     steps:
