@@ -7,46 +7,40 @@ const session = require("express-session");
 const path = require("path");
 const bodyParser = require("body-parser");
 const searchRoutes = require("./routes/search");
-require('dotenv').config()
+require("dotenv").config();
 
 // Initialize express app
 const app = express();
-const port = 5670;
 
 // Load environment variables from .env file
-const session_secret = process.env.NODE_SESSION_SECRET;
+const { PORT, NODE_SESSION_SECRET } = process.env;
 
 // Configure session middleware
 app.use(
 	session({
-        secret: session_secret,
+		secret: NODE_SESSION_SECRET,
 		resave: false,
 		saveUninitialized: true,
 	})
 );
 
-// Parse URL-encoded bodies (as sent by HTML forms)
+// Parse incoming request bodies
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Parse JSON bodies (as sent by API clients)
-app.use(bodyParser.json());
-
-// Set the view engine to ejs
+// Set view engine and views directory
 app.set("view engine", "ejs");
-
-// Set the directory where the views will be loaded from
 app.set("views", path.join(__dirname, "views/pages"));
 
-// Define a route for the root of the app
+// Define root route
 app.get("/", (req, res) => {
-	// Render the index.ejs file
 	res.render("index");
 });
 
-// Use the search route
+// Use search routes
 app.use(searchRoutes);
 
-// Start the server
-app.listen(port, () => {
-	console.log(`Server listening at http://localhost:${port}`);
+// Start server
+app.listen(PORT, () => {
+	console.log(`Server listening on port ${PORT}`);
 });
