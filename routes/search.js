@@ -3,10 +3,18 @@ const router = express.Router();
 const dayjs = require('dayjs');
 const { scrapeDockets } = require('../utils/scraper');
 const session = require('express-session');
+const path = require("path");
+require("dotenv").config({
+    path: path.resolve(__dirname, "../.env"),
+});
+
+// Load environment variables from .env file
+const session_secret = process.env.NODE_SESSION_SECRET;
+const user_agent = process.env.OSCN_USER_AGENT;
 
 // Configure session middleware
 router.use(session({
-    secret: 'edison',
+    secret: session_secret,
     resave: false,
     saveUninitialized: true
 }));
@@ -15,7 +23,7 @@ router.post('/search', async (req, res) => {
     console.log(req)
     console.log('Received search request:', req.body);
 
-    const { db, FiledDateL, ClosedDateH, UserAgent } = req.body;
+    const { db, FiledDateL, ClosedDateH } = req.body;
     const formattedFiledDateL = dayjs(FiledDateL).format('MM/DD/YYYY');
     const formattedClosedDateH = dayjs(ClosedDateH).format('MM/DD/YYYY');
     const searchUrl = `http://www.oscn.net/dockets/Results.aspx?db=${db}&partytype=10009&FiledDateL=${encodeURIComponent(formattedFiledDateL)}&ClosedDateH=${encodeURIComponent(formattedClosedDateH)}&dcct=32`;
@@ -24,7 +32,7 @@ router.post('/search', async (req, res) => {
 
     try {
         console.log('Initiating scraping process for URL:', searchUrl);
-        const cases = await scrapeDockets(searchUrl, UserAgent);
+        const cases = await scrapeDockets(searchUrl, user_agent);
         console.log('Scraping complete, cases found:', cases.length);
         // Inside the try block, after scraping is complete
         req.session.cases = cases; // Store the cases in the session
