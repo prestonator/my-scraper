@@ -33,6 +33,8 @@ async function scrapeDockets(searchUrl, userAgent) {
 		console.log("Content loaded, starting extraction now");
 
 		const $ = cheerio.load(content);
+		// Stores unique case entries
+		const cases = {};
 
 		// Define selectors for 'Case Number' and 'Docket Page Link'
 		// These selectors must match the actual page structure and may need adjustments
@@ -40,9 +42,6 @@ async function scrapeDockets(searchUrl, userAgent) {
 			"div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td:first-child > a";
 		const docketLinkSelector =
 			"div#oscn-content table.caseCourtTable tbody tr.resultTableRow > td.result_shortstyle > a";
-
-		// Stores unique case entries
-		const cases = {};
 
 		// Extract 'Case Number' and corresponding 'Docket Page Link'
 		$(caseNumberSelector).each((index, element) => {
@@ -57,18 +56,21 @@ async function scrapeDockets(searchUrl, userAgent) {
 			}
 		});
 
-		// Updating case objects with additional details
-		for (let caseNumber in cases) {
-			const caseData = await scrapeCaseDetails(
-				cases[caseNumber].docketPageLink,
-				userAgent
-			);
-			console.log("Scraping case details:", caseData);
+		// Create an array of promises for each case detail scraping operation
+		const caseDetailsPromises = Object.keys(cases).map(caseNumber =>
+			scrapeCaseDetails(cases[caseNumber].docketPageLink, userAgent)
+		);
+
+		// Use Promise.all to scrape all case details concurrently
+		const allCaseDetails = await Promise.all(caseDetailsPromises);
+
+		// Combine the case details with the existing case entries
+		Object.keys(cases).forEach((caseNumber, index) => {
 			cases[caseNumber] = {
 				...cases[caseNumber],
-				...caseData,
+				...allCaseDetails[index]
 			};
-		}
+		});
 
 		// Return array of case objects with no duplicates
 		console.log("Extraction complete, closing browser now");
