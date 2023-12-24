@@ -7,25 +7,9 @@
 			<div class="form-group">
 				<label for="county-select">Oklahoma Counties:</label>
 				<select class="form-control" id="county-select" name="db" required>
-					<option value="">Select a county</option>
-					<option value="all">All Oklahoma Courts*</option>
-					<option value="adair">Adair County District Court</option>
-					<option value="alfalfa">Alfalfa County District Court</option>
-					<option value="appellate">Appellate Courts</option>
-					<option value="atoka">Atoka County District Court</option>
-					<option value="beaver">Beaver County District Court</option>
-					<option value="beckham">Beckham County District Court</option>
-					<option value="blaine">Blaine County District Court</option>
-					<option value="bryan">Bryan County District Court</option>
-					<option value="caddo">Caddo County District Court</option>
-					<option value="canadian">Canadian County District Court</option>
-					<option value="carter">Carter County District Court</option>
-					<option value="cherokee">Cherokee County District Court</option>
-					<option value="choctaw">Choctaw County District Court</option>
-					<option value="cimarron">Cimarron County District Court</option>
-					<option value="cleveland">Cleveland County District Court</option>
-					<option value="coal">Coal County District Court</option>
-					<!-- Add more options here -->
+					<% counties.forEach(function(county) { %>
+					<option value="<%= county.value %>"><%= county.name %></option>
+					<% }); %>
 				</select>
 			</div>
 
@@ -62,5 +46,3 @@
 </div>
 
 <%- include('../partials/footer'); -%>
-
-<!-- Include the custom script for handling form submission<script src="/js/searchFormHandler.js"></script> -->

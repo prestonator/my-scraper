@@ -5,6 +5,7 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
+const fs = require('fs');
 const bodyParser = require("body-parser");
 const searchRoutes = require("./routes/search");
 require("dotenv").config();
@@ -34,7 +35,8 @@ app.set("views", path.join(__dirname, "views/pages"));
 
 // Define root route
 app.get("/", (req, res) => {
-	res.render("index");
+	const counties = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/counties.json'), 'utf8'));
+	res.render("index", { counties });
 });
 
 // Use search routes
