@@ -15,8 +15,8 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Generate index
-        run: scip-typescript index --infer-tsconfig
+        run: scip-typescript index
       - name: Upload index
-        run: src code-intel upload -github-token=${{ secrets.GITHUB_TOKEN }} -no-progress
+        run: src code-intel upload -github-token='${{ secrets.GITHUB_TOKEN }}' -no-progress
         env:
           SRC_ENDPOINT: https://sourcegraph.com/
