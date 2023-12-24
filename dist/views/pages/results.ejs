@@ -1,0 +1,28 @@
+<!-- views/pages/results.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- ... (your head elements) -->
+		<title>Search Results</title>
+	</head>
+	<body>
+		<h1>Search Results</h1>
+		<% if (cases.length > 0) { %> <% cases.forEach(function(caseData) { %>
+		<div>
+			<h2><%= caseData.caseNumber %></h2>
+			<h2><%= caseData.fullName %></h2>
+			<a target="_blank" href="<%= caseData.docketUrl %>">OSCN PAGE</a>
+			<% caseData.counts.forEach(function(count) { %>
+			<div>
+				<p>Count: <%= count.countDescription %></p>
+				<p>Verdict: <%= count.verdict %></p>
+			</div>
+			<% }); %>
+			<!-- Display other case details here -->
+		</div>
+		<% }); %> <% } else { %>
+		<p>No cases found.</p>
+		<% } %>
+	</body>
+</html>

@@ -1,0 +1,48 @@
+<%- include('../partials/header'); -%>
+
+<div class="row">
+	<div class="col-md-12">
+		<form id="search-form" class="mt-3" action="search" method="post">
+			<!-- Oklahoma Counties Select Menu -->
+			<div class="form-group">
+				<label for="county-select">Oklahoma Counties:</label>
+				<select class="form-control" id="county-select" name="db" required>
+					<% counties.forEach(function(county) { %>
+					<option value="<%= county.value %>"><%= county.name %></option>
+					<% }); %>
+				</select>
+			</div>
+
+			<!-- Cases filed after date Picker -->
+			<div class="form-group">
+				<label for="filed-after-date">Cases filed after date:</label>
+				<input
+					type="date"
+					class="form-control"
+					id="filed-after-date"
+					name="FiledDateL"
+					required
+					placeholder="MM/DD/YYYY"
+				/>
+			</div>
+
+			<!-- Cases Closed before date Picker -->
+			<div class="form-group">
+				<label for="closed-before-date">Cases Closed before date:</label>
+				<input
+					type="date"
+					class="form-control"
+					id="closed-before-date"
+					name="ClosedDateH"
+					required
+					placeholder="MM/DD/YYYY"
+				/>
+			</div>
+
+			<!-- Submit button -->
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
+	</div>
+</div>
+
+<%- include('../partials/footer'); -%>
